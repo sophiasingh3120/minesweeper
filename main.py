@@ -3,6 +3,18 @@ from drafter import *
 from dataclasses import dataclass
 import random
 
+set_website_title("Minesweeper")
+set_site_information(
+    author="Sophia Singh",
+    description="Find all the safe tiles in a grid.",
+    sources="Thanks to the Drafter docs and Chat GPT.",
+    planning=["plan.pdf", "design.pdf"],
+    links=["https://sophiasingh3120.github.io/minesweeper/"]
+)
+hide_debug_information()
+set_website_framed(False)
+
+
 
 # Constants
 BOARD_SIZE = 8
@@ -120,7 +132,7 @@ def index(state: State) -> Page:
     return Page(state, [
         Header("MINESWEEPER"),
         "Welcome to Minesweeper!",
-        "Try to uncover all" + str(SAFE_TILE_COUNT) + "safe tiles without hitting a mine.",
+        "Try to uncover all" + " " + str(SAFE_TILE_COUNT) + " " + "safe tiles without hitting a mine.",
         "\n",
         Header("Enter Your Name"),
         TextBox("player_name"),
