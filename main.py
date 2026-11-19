@@ -3,6 +3,10 @@ from drafter import *
 from dataclasses import dataclass
 import random
 
+from drafter import *
+
+
+
 set_website_title("Minesweeper")
 set_site_information(
     author="Sophia Singh",
@@ -14,7 +18,34 @@ set_site_information(
 hide_debug_information()
 set_website_framed(False)
 
+add_website_css("""
+body {
+    background-color: #1f1f1f !important;
+    color: #00FFFF !important;
+}
 
+* {
+    color: #00FFFF !important;
+}
+
+h1, h2, h3 {
+    color: #39FF14 !important;
+    text-shadow: 0 0 10px #39FF14;
+}
+
+button {
+    background-color: #4a4a4a;
+    color: white !important;
+    border: 2px solid #6b6b6b;
+    border-radius: 8px;
+}
+
+input, textarea {
+    background-color: #2f2f2f;
+    color: white !important;
+    border: 1px solid #666666;
+}
+""")
 
 # Constants
 BOARD_SIZE = 8
@@ -61,6 +92,25 @@ def create_board(mine_positions: list[int]) -> list[Tile]:
 
     return tiles
 
+def count_nearby_mines(tile: Tile, tiles: list[Tile]) -> int:
+    """Count mines in adjacent squares."""
+    nearby = 0
+
+    for other_tile in tiles:
+        if not other_tile.has_mine:
+            continue
+
+        row_difference = abs(tile.row - other_tile.row)
+        column_difference = abs(tile.column - other_tile.column)
+
+        if (
+            row_difference <= 1
+            and column_difference <= 1
+            and other_tile != tile
+        ):
+            nearby += 1
+
+    return nearby
 
 # Checks whether every safe tile has been revealed.
 def has_won(tiles: list[Tile]) -> bool:
@@ -95,33 +145,49 @@ def start_new_round(state: State) -> None:
 
 # Creates the buttons that make up the 8 by 8 board.
 def create_grid(state: State) -> list:
-    """Create one button for each unrevealed tile."""
+    """Create the mine-themed game board."""
     grid = []
 
     for position, tile in enumerate(state.tiles):
 
         if tile.revealed:
+
             if tile.has_mine:
                 grid.append("💣")
+
             else:
-                grid.append("✨")
+                nearby = count_nearby_mines(
+                    tile,
+                    state.tiles
+                )
+
+                # Far from mines = Diamond
+                if nearby == 0:
+                    grid.append("💎")
+
+                # Somewhat close = Yellow Gem
+                elif nearby <= 2:
+                    grid.append("🔶")
+
+                # Very close = Red Gem
+                else:
+                    grid.append("♦️")
 
         else:
             grid.append(
                 Button(
-                    "?",
+                    "🪨",
                     "choose_tile",
                     [Argument("tile_index", position)]
                 )
             )
 
-        # Move to the next line after every eight tiles.
+        # Move to next row every 8 tiles
         if (position + 1) % BOARD_SIZE == 0:
             grid.append("\n")
 
     return grid
-
-
+            
 # --------------------------------------------------
 # ROUTE 1: HOME PAGE
 # --------------------------------------------------
@@ -175,9 +241,16 @@ def instructions(state: State) -> Page:
         "1. The board contains 64 tiles arranged in an 8 by 8 grid.",
         "2. There are exactly 12 mines hidden on the board.",
         "3. Click one tile at a time to reveal it.",
-        "4. If the tile is safe, you earn 1 point.",
-        "5. If the tile contains a mine, the game is over.",
-        "6. Reveal all 52 safe tiles to win!",
+        "4. The color under the tile indicates how far you are from the nearest mine."
+        "\n",
+        "💎 = Safe",
+        "🔶 = Near a mine",
+        "♦️ = Very close to a mine",
+        "💣 = Mine",
+        "\n",
+        "5. If the tile is safe, you earn 1 point.",
+        "6. If the tile contains a mine, the game is over.",
+        "7. Reveal all 52 safe tiles to win!",
         "\n",
         state.message,
         CheckBox("ready"),
@@ -281,7 +354,7 @@ def congratulations(state: State) -> Page:
         Header("CONGRATULATIONS!"),
         "Amazing job, " + state.player_name + "!",
         "\n",
-        "You successfully revealed all" + str(SAFE_TILE_COUNT) + "safe tiles!",
+        "You successfully revealed all" + " " + str(SAFE_TILE_COUNT) + " " + "safe tiles!",
         "You won the game!",
         "\n",
         "Final Score: " + str(state.score),
@@ -646,4 +719,5 @@ assert_equal(
 start_server(
     State("", 0, [], "not_started", "", "")
 )
+
 
