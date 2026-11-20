@@ -7,7 +7,7 @@ from drafter import *
 
 
 
-set_website_title("Minesweeper")
+set_website_title("TEST")
 set_site_information(
     author="Sophia Singh",
     description="Find all the safe tiles in a grid.",
